@@ -18,26 +18,31 @@ class AuthController
     
     // Método para guardar la información de registro
     public function register(Request $request){
-        // Validaciones de los campos del formulario
         $request->validate([
             'name' => 'required',
             'email' => 'required|email|unique:users',
             'phone' => 'required',
             'password' => 'required|confirmed|min:8',
+        ], [
+            'email.unique' => 'Este correo ya está en uso.',
+            'email.required' => 'El correo es obligatorio.',
+            'name.required' => 'El nombre es obligatorio.',
+            'phone.required' => 'El teléfono es obligatorio.',
+            'password.required' => 'La contraseña es obligatoria.',
+            'password.confirmed' => 'Las contraseñas no coinciden.',
+            'password.min' => 'La contraseña debe tener al menos 8 caracteres.',
         ]);
 
         $user = User::create([
-        'name' => $request->name,
-        'email' => $request->email,
-        'phone' => $request->phone,
-        'password' => Hash::make($request->password),
+            'name' => $request->name,
+            'email' => $request->email,
+            'phone' => $request->phone,
+            'password' => Hash::make($request->password),
         ]);
 
-        // Iniciar sesión de forma automática
-    Auth::login($user);
+        Auth::login($user);
 
-    return redirect()->route('home');
-
+        return redirect()->route('home');
     }
 
    // Método para regresar la vista del inicio de sesión
