@@ -1,28 +1,18 @@
 <?php
-
 namespace App\Http\Controllers;
-
 use Illuminate\Http\Request;
 use App\Models\User;
 
 class UserController
 {
-    /**
-     * Display a listing of the resource.
-     */
+    
     public function index()
     {
         //
             $users = User::all();
             return view('users.index', compact('users'));       
-
     }
-
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
-    {
+    public function create(){
         //
         return view('users.create');
     }
@@ -30,10 +20,7 @@ class UserController
     {
         return view('admin.create');
     }
-
-    /**
-     * Store a newly created resource in storage.
-     */
+   
     public function store(Request $request)
     {
     User::create([
@@ -42,7 +29,6 @@ class UserController
         'phone' => $request->phone,
         'password' => bcrypt($request->password),
     ]);
-
     return redirect()->route('home');
     }
 
@@ -82,9 +68,6 @@ public function admins()
         return view('users.edit', compact('user'));
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
     public function update(Request $request, User $user)
     {
         $user->update([
@@ -96,9 +79,6 @@ public function admins()
         return redirect()->route('users.index');
     }
 
-    /**
-     * Remove the specified resource from storage.
-     */
     public function destroy(User $user)
     {
         $user->delete();

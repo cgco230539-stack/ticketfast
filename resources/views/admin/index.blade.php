@@ -6,26 +6,26 @@
     <title>Document</title>
 </head>
 <body>
-@extends('layouts.app')
+    @extends('layouts.app')
 
-@section('content')
+    @section('content')
 
-<h1>Administradores</h1>
+    <h1>Administradores</h1>
 
-<table border="1">
-    <tr>
-        <th>Nombre</th>
-        <th>Email</th>
-    </tr>
-
-    @foreach($admins as $admin)
+    <table border="1">
         <tr>
-            <td>{{ $admin->name }}</td>
-            <td>{{ $admin->email }}</td>
+            <th>Nombre</th>
+            <th>Email</th>
         </tr>
-    @endforeach
-</table>
 
-@endsection
+        @foreach($admins as $admin)
+            <tr>
+                <td>{{ $admin->name }}</td>
+                <td>{{ $admin->email }}</td>
+            </tr>
+        @endforeach
+    </table>
+
+    @endsection
 </body>
 </html>

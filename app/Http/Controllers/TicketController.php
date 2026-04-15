@@ -2,68 +2,75 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Ticket;
+use App\Models\Event;
 use Illuminate\Http\Request;
+use Illuminate\Support\Str;
 
-class TicketController 
+class TicketController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
+    // Listar tickets del usuario actual
     public function index()
     {
-        //
-        return view('tickets.index');
-        
-
+        $tickets = Ticket::with('event')
+            ->where('user_id', auth()->id())
+            ->get();
+        return view('tickets.index', compact('tickets'));
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
+    // Formulario para comprar ticket
+    public function create(Request $request)
     {
-        //
+        $event = Event::findOrFail($request->event_id);
+        return view('tickets.create', compact('event'));
     }
-
-    
-
-    /**
-     * Store a newly created resource in storage.
-     */
+    // Guardar ticket (comprar)
     public function store(Request $request)
     {
-        //
+        $event = Event::findOrFail($request->event_id);
+        // Verificar disponibilidad
+        if ($event->availableTickets() <= 0) {
+            return back()->with('error', 'Lo sentimos, boletos agotados para este evento.');
+        }
+        Ticket::create([
+            'user_id'     => auth()->id(),
+            'event_id'    => $event->id,
+            'unique_code' => strtoupper(Str::random(10)),
+            'status'      => 'valid',
+        ]);
+        return redirect()->route('tickets.index')
+            ->with('success', '¡Ticket comprado exitosamente!');
     }
 
-    /**
-     * Display the specified resource.
-     */
-    public function show(string $id)
+    // Ver detalle de un ticket
+    public function show(Ticket $ticket)
     {
-        //
+        // Solo el dueño o admin puede ver el ticket
+        if (auth()->id() !== $ticket->user_id && !auth()->user()->is_admin) {
+            abort(403);
+        }
+        return view('tickets.show', compact('ticket'));
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(string $id)
+    // Solo admin puede eliminar tickets
+    public function destroy(Ticket $ticket)
     {
-        //
+        if (!auth()->user()->is_admin) {
+            return back()->with('error', 'No tienes permiso para eliminar tickets.');
+        }
+
+        $ticket->delete();
+        return redirect()->route('tickets.index')
+            ->with('success', 'Ticket eliminado correctamente.');
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, string $id)
+    // Admin ve todos los tickets
+    public function adminIndex()
     {
-        //
+        $tickets = Ticket::with(['event', 'user'])->get();
+        return view('tickets.admin', compact('tickets'));
     }
 
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(string $id)
-    {
-        //
-    }
+    public function edit(string $id) {}
+    public function update(Request $request, string $id) {}
 }

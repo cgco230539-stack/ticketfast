@@ -1,4 +1,12 @@
-@extends('layouts.app')
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body>
+
+    @extends('layouts.app')
 
 @section('content')
 
@@ -18,10 +26,11 @@
 
 <input type="password" name="password" placeholder="Contraseña" required>
 <br>
-
-
 <button type="submit">Crear Administrador</button>
 
 </form>
 
 @endsection
+    
+</body>
+</html>

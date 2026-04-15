@@ -2,6 +2,9 @@
 
 namespace App\Http\Controllers;
 
+use App\Events\UserLoggedIn;
+use Carbon\Carbon;
+
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Auth;
@@ -18,31 +21,32 @@ class AuthController
     
     // Método para guardar la información de registro
     public function register(Request $request){
-        $request->validate([
-            'name' => 'required',
-            'email' => 'required|email|unique:users',
-            'phone' => 'required',
-            'password' => 'required|confirmed|min:8',
-        ], [
-            'email.unique' => 'Este correo ya está en uso.',
-            'email.required' => 'El correo es obligatorio.',
-            'name.required' => 'El nombre es obligatorio.',
-            'phone.required' => 'El teléfono es obligatorio.',
-            'password.required' => 'La contraseña es obligatoria.',
-            'password.confirmed' => 'Las contraseñas no coinciden.',
-            'password.min' => 'La contraseña debe tener al menos 8 caracteres.',
-        ]);
+    $request->validate([
+        'name'     => 'required',
+        'email'    => 'required|email|unique:users',
+        'phone'    => 'required',
+        'password' => 'required|confirmed|min:8',
+    ], [
+        'email.unique'        => 'Este correo ya está en uso.',
+        'email.required'      => 'El correo es obligatorio.',
+        'name.required'       => 'El nombre es obligatorio.',
+        'phone.required'      => 'El teléfono es obligatorio.',
+        'password.required'   => 'La contraseña es obligatoria.',
+        'password.confirmed'  => 'Las contraseñas no coinciden.',
+        'password.min'        => 'La contraseña debe tener al menos 8 caracteres.',
+    ]);
 
-        $user = User::create([
-            'name' => $request->name,
-            'email' => $request->email,
-            'phone' => $request->phone,
-            'password' => Hash::make($request->password),
-        ]);
+    $user = User::create([
+        'name'     => $request->name,
+        'email'    => $request->email,
+        'phone'    => $request->phone,
+        'password' => Hash::make($request->password),
+    ]);
 
-        Auth::login($user);
+    Auth::login($user);
 
-        return redirect()->route('home');
+    return redirect()->route('home')
+        ->with('success', '¡Cuenta creada exitosamente! Bienvenido, ' . $user->name . '.');
     }
 
    // Método para regresar la vista del inicio de sesión
@@ -52,29 +56,34 @@ class AuthController
     
         // Método para iniciar sesión
     public function login(Request $request){
-        // Validar la información del formulario
-        $request->validate([
-            'email' => 'required|email',
-            'password' => 'required',
-        ]);
+    $request->validate([
+        'email'    => 'required|email',
+        'password' => 'required',
+    ]);
 
-        // Intentar el inicio de sesión
-        if(Auth::attempt(['email' => $request->email, 'password' => $request->password])){
-            // Iniciar sesión y redireccionar al usuario con sesión activa
-            $request->session()->regenerate();
-            return redirect()->route('home');
-        }
+    if (Auth::attempt(['email' => $request->email, 'password' => $request->password])) {
+        $request->session()->regenerate();
 
-        return back()->withErrors([
-            'email' => 'Datos incorrectos'
-        ]);
-    } 
+        event(new UserLoggedIn(
+            auth()->user(),
+            $request->ip() ?? 'IP no disponible',
+            $request->userAgent() ?? 'Dispositivo no identificado',
+            Carbon::now()->format('d/m/Y H:i:s')
+        ));
+
+        return redirect()->route('home')
+            ->with('success', 'Bienvenido, ' . auth()->user()->name . '!');
+    }
+
+    return back()->with('error', 'Correo o contraseña incorrectos.');
+    }
     
         // Método para cerrar sesión
     public function logout(Request $request){
-        Auth::logout();
-        $request->session()->invalidate();
-        $request->session()->regenerateToken();
-        return redirect()->route('home');
+    Auth::logout();
+    $request->session()->invalidate();
+    $request->session()->regenerateToken();
+    return redirect()->route('home')
+        ->with('warning', 'Has cerrado sesión correctamente.');
     }
 }

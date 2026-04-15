@@ -35,4 +35,9 @@ return [
         ],
     ],
 
+    'ticket_tailor' => [
+    'api_key' => env('TICKET_TAILOR_API_KEY'),
+    'base_url' => env('TICKET_TAILOR_BASE_URL'),
+    ],
+
 ];

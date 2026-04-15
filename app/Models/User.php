@@ -21,7 +21,8 @@ class User extends Authenticatable
         'name',
         'email',
         'phone',
-        'password', 
+        'password',
+        'is_admin',
     ];
 
     /**
@@ -39,11 +40,18 @@ class User extends Authenticatable
      *
      * @return array<string, string>
      */
-    protected function casts(): array
+   protected function casts(): array
     {
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'is_admin' => 'boolean',
         ];
+    }
+
+    // Relaciones
+    public function tickets()
+    {
+        return $this->hasMany(Ticket::class);
     }
 }
